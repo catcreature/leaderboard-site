@@ -1,13 +1,13 @@
 {
-    "smallLine": "Season 2",
-    "title": "Sunday Smashers",
+    "smallLine": "Season 1",
+    "title": "Best Smashers League",
     "announcement": "Next session Saturday 7 pm",
     "theme": "royal",
     "main": "#0C1638",
     "accent": "#FF7A1A",
     "medalRows": 3,
-    "background": "photo",
-    "logo": "4f30bc96e2263fef6608beea0bf8df483082f4a6",
+    "background": "court",
+    "logo": "",
     "logoShape": "shield",
     "photo": "9c228435193ad0c315d03966b0fadbb2b53230fb"
 }
