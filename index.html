@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Leaderboard</title>
 <style>
-  :root { --bg:#f5f4f0; --card:#ffffff; --text:#1c1d21; --muted:#6c6d75; --line:#e5e3dc; --gold:#b7791f; }
+  :root { --bg:#f5f4f0; --card:#ffffff; --text:#1c1d21; --muted:#6c6d75; --line:#e5e3dc; --gold:#8f5d10; }
   @media (prefers-color-scheme: dark) {
     :root { --bg:#111216; --card:#1a1b20; --text:#f1f1f3; --muted:#9b9ca5; --line:#2a2b31; --gold:#f2b544; }
   }
@@ -29,7 +29,7 @@
 <body>
 <main>
   <h1>Leaderboard</h1>
-  <p id="status">Loading…</p>
+  <p id="status" role="status">Loading…</p>
   <table id="board" hidden>
     <thead><tr><th class="rank">#</th><th>Name</th><th class="points">Points</th></tr></thead>
     <tbody></tbody>
