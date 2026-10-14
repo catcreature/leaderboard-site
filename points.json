@@ -1,27 +1,35 @@
 [
     {
+        "name": "Ravi",
+        "points": 20
+    },
+    {
+        "name": "Isha",
+        "points": 17
+    },
+    {
         "name": "Arjun",
         "points": 15
     },
     {
-        "name": "Isha",
+        "name": "Priya",
         "points": 15
-    },
-    {
-        "name": "Ravi",
-        "points": 12
     },
     {
         "name": "Sana",
         "points": 11
     },
     {
+        "name": "Rohan",
+        "points": 10
+    },
+    {
         "name": "Meera",
         "points": 9
     },
     {
-        "name": "Priya",
-        "points": 9
+        "name": "Neha",
+        "points": 8
     },
     {
         "name": "Dev",
