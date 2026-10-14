@@ -3,64 +3,257 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Leaderboard</title>
+<title>Ladder League</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Non-blocking: a slow font server must never hold back the board (it would sit on "Loading…"). -->
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;1,600;1,800;1,900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
-  :root { --bg:#f5f4f0; --card:#ffffff; --text:#1c1d21; --muted:#6c6d75; --line:#e5e3dc; --gold:#8f5d10; }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#111216; --card:#1a1b20; --text:#f1f1f3; --muted:#9b9ca5; --line:#2a2b31; --gold:#f2b544; }
-  }
+  /* Theme colours are set from site.json by the script; these are the Stadium defaults. */
+  :root { --bg:#060B1F; --panel:#0B1640; --accent:#FF7A1A; --accent2:#2D63FF; --floor:#0E6E7A;
+          --text:#F5F7FF; --muted:#A7B3D9; --line:rgba(150, 175, 255, .16);
+          --gold:#E9A919; --silver:#AEB8C8; --bronze:#C9692B; }
+  body.light { --text:#0E1330; --muted:#4A5070; --line:rgba(0, 0, 0, .12); }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-         font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  main { max-width: 560px; margin: 0 auto; padding: 32px 16px 48px; }
-  h1 { margin: 0 0 4px; font-size: 28px; letter-spacing: -0.01em; }
-  #status { margin: 0 0 20px; color: var(--muted); }
-  table { width: 100%; border-collapse: collapse; background: var(--card);
-          border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-  th, td { padding: 12px 16px; text-align: left; border-top: 1px solid var(--line); }
-  th { border-top: 0; font-size: 13px; font-weight: 600; color: var(--muted);
-       text-transform: uppercase; letter-spacing: 0.04em; }
-  td.rank, th.rank { width: 3.5em; color: var(--muted); font-variant-numeric: tabular-nums; }
-  td.points, th.points { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
-  td.name { overflow-wrap: anywhere; }
-  tr.top td.rank { color: var(--gold); font-weight: 700; }
+  html { background: var(--bg); }
+  body { margin: 0; min-height: 100vh; color: var(--text); background: var(--bg); position: relative; overflow-x: hidden;
+         font: 600 18px/1.3 "Barlow Condensed", system-ui, sans-serif; }
+  main { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; padding: 28px 14px 22vh; }
+
+  /* Backgrounds */
+  body.bg-stadium { background:
+      radial-gradient(40% 22% at 8% 2%, color-mix(in srgb, var(--accent2) 55%, transparent), transparent 70%),
+      radial-gradient(40% 22% at 92% 2%, color-mix(in srgb, var(--accent2) 55%, transparent), transparent 70%),
+      radial-gradient(90% 50% at 50% 0%, color-mix(in srgb, var(--accent2) 30%, var(--bg)), transparent 70%), var(--bg); }
+  body.bg-stadium::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 220px; pointer-events: none; opacity: .32;
+      background-image: radial-gradient(circle, #fff 0 1.6px, transparent 2.4px); background-size: 30px 24px;
+      -webkit-mask-image: linear-gradient(#000, transparent); mask-image: linear-gradient(#000, transparent); }
+  body.bg-stadium::after, body.bg-court::after { content: ""; position: fixed; left: -10%; right: -10%; bottom: 0; height: 22vh;
+      pointer-events: none; z-index: 0; border-top: 3px solid rgba(255, 255, 255, .8);
+      background:
+        linear-gradient(90deg, transparent calc(50% - 2px), rgba(255,255,255,.7) calc(50% - 2px) calc(50% + 2px), transparent 0),
+        linear-gradient(transparent 42%, rgba(255,255,255,.7) 42% calc(42% + 3px), transparent 0),
+        linear-gradient(90deg, transparent 9%, rgba(255,255,255,.55) 9% calc(9% + 3px), transparent 0 calc(91% - 3px), rgba(255,255,255,.55) 0 91%, transparent 0),
+        linear-gradient(180deg, color-mix(in srgb, var(--floor) 75%, #000), var(--floor));
+      clip-path: polygon(14% 0, 86% 0, 100% 100%, 0 100%); }
+  body.bg-court { background: linear-gradient(180deg, var(--bg), color-mix(in srgb, var(--floor) 35%, var(--bg))); }
+  body.bg-court::after { height: 46vh; clip-path: polygon(6% 0, 94% 0, 100% 100%, 0 100%); }
+  body.bg-gradient { background:
+      radial-gradient(80% 45% at 85% 0%, color-mix(in srgb, var(--accent) 35%, transparent), transparent 70%),
+      radial-gradient(70% 40% at 0% 30%, color-mix(in srgb, var(--accent2) 35%, transparent), transparent 70%),
+      linear-gradient(180deg, var(--bg), color-mix(in srgb, var(--bg) 70%, #000)); }
+  body.bg-plain main, body.bg-gradient main { padding-bottom: 48px; }
+  .photo { position: fixed; inset: 0; z-index: 0; background-position: center; background-size: cover; }
+  .photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,.42), rgba(0,0,0,.78)); }
+  body.bg-photo main { padding-bottom: 48px; }
+
+  /* Header */
+  header { position: relative; display: flex; align-items: center; gap: 14px; padding: 6px 70px 22px 0; }
+  .logo { flex: none; width: 78px; height: 78px; padding: 3px; background: var(--accent); }
+  .logo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .logo.circle, .logo.circle img { border-radius: 50%; }
+  .logo.rounded { border-radius: 20px; } .logo.rounded img { border-radius: 17px; }
+  .logo.shield, .logo.shield img { clip-path: polygon(50% 0, 100% 12%, 100% 55%, 50% 100%, 0 55%, 0 12%); }
+  .titles { min-width: 0; }
+  .kicker { display: block; font-style: italic; font-weight: 800; font-size: 22px; color: var(--accent); letter-spacing: .04em; overflow-wrap: anywhere; }
+  h1 { margin: 2px 0 0; font-style: italic; font-weight: 900; font-size: clamp(50px, 16vw, 92px); line-height: .86; text-transform: uppercase;
+       letter-spacing: -.01em; text-shadow: 0 4px 0 rgba(0,0,0,.35); position: relative; z-index: 0; overflow-wrap: break-word; }
+  header.has-logo h1 { font-size: clamp(40px, 12vw, 80px); }
+  header.has-logo h1.long { font-size: clamp(32px, 9vw, 56px); }
+  h1.long { font-size: clamp(36px, 10.5vw, 64px); line-height: .92; }
+  h1 span { display: block; }
+  h1 .last { color: var(--accent); }
+  h1::before { content: ""; position: absolute; left: -16px; right: 8%; top: 34%; height: 46%; z-index: -1; border-radius: 4px; opacity: .9;
+               background: linear-gradient(90deg, transparent, var(--accent2) 12%, color-mix(in srgb, var(--accent2) 80%, #000) 80%, transparent);
+               transform: skewX(-18deg) rotate(-3deg); }
+  .shuttle { position: absolute; right: 8px; top: 0; width: 60px; transform: rotate(28deg); filter: drop-shadow(0 6px 10px rgba(0,0,0,.5)); }
+  .announce { margin: 0 0 16px; padding: 10px 14px; border-left: 4px solid var(--accent); border-radius: 6px;
+              background: color-mix(in srgb, var(--panel) 85%, transparent); font-size: 20px; overflow-wrap: anywhere; }
+  #status { margin: 0 0 14px; color: var(--muted); }
+
+  /* Table */
+  .table { background: var(--panel); border: 2px solid var(--accent); border-radius: 14px; overflow: hidden;
+           box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent), 0 24px 60px rgba(0,0,0,.55); }
+  .head, li { display: grid; grid-template-columns: 64px 1fr 92px; align-items: center; }
+  .head { background: color-mix(in srgb, var(--accent2) 18%, var(--panel)); color: var(--accent); font-style: italic; font-weight: 800;
+          font-size: 17px; letter-spacing: .06em; text-transform: uppercase; padding: 10px 0; border-bottom: 2px solid var(--accent); }
+  .head span:first-child, .r { text-align: center; }
+  .head span:last-child, .p { text-align: right; padding-right: 16px; }
+  ol { list-style: none; margin: 0; padding: 0; }
+  li { min-height: 46px; border-bottom: 1px solid var(--line); }
+  li:last-child { border-bottom: 0; }
+  li:nth-child(even) { background: color-mix(in srgb, var(--text) 3%, transparent); }
+  .r { font-style: italic; font-weight: 800; font-size: 21px; }
+  .n { font-style: italic; font-weight: 800; font-size: 22px; padding: 0 8px; overflow-wrap: anywhere; letter-spacing: .01em; }
+  .p { font-style: italic; font-weight: 900; font-size: 26px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  li.m { min-height: 64px; color: #F5F7FF; }
+  li.m .n { font-size: 27px; } li.m .p { font-size: 32px; }
+  li.m1 { background: linear-gradient(90deg, rgba(233, 169, 25, .75), rgba(233, 169, 25, .25)); }
+  li.m2 { background: linear-gradient(90deg, rgba(150, 160, 178, .75), rgba(150, 160, 178, .25)); }
+  li.m3 { background: linear-gradient(90deg, rgba(201, 105, 43, .75), rgba(201, 105, 43, .25)); }
+  li.m .p { color: #FFFFFF; text-shadow: 0 2px 0 rgba(0,0,0,.3); }
+  body.light li.m, body.light li.m .p { color: #0E1330; text-shadow: none; }
+  .medal { width: 42px; height: 42px; margin: 0 auto; display: block; }
+  .m1 .medal { --m: var(--gold); --m2: #FFE08A; } .m2 .medal { --m: var(--silver); --m2: #EEF2F7; } .m3 .medal { --m: var(--bronze); --m2: #F2A672; }
+
+  /* ⓘ */
+  .about { position: fixed; right: 12px; bottom: 12px; z-index: 3; width: 30px; height: 30px; padding: 4px; border-radius: 50%;
+           border: 0; background: rgba(0,0,0,.45); color: #fff; cursor: pointer; }
+  .about svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+  .about:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .bubble { position: fixed; right: 12px; bottom: 50px; z-index: 3; padding: 6px 12px; border-radius: 8px;
+            background: #fff; color: #0E1330; font-size: 18px; box-shadow: 0 6px 20px rgba(0,0,0,.4); }
+  @media (prefers-reduced-motion: no-preference) { li.m1 { animation: shine 3s ease-in-out 1; } }
+  @keyframes shine { 0% { filter: brightness(1.5); } 100% { filter: none; } }
 </style>
 </head>
-<body>
+<body class="bg-stadium">
+<div class="photo" id="photo" hidden></div>
 <main>
-  <h1>Leaderboard</h1>
+  <header>
+    <div class="logo" id="logo" hidden><img alt="" id="logo-img"></div>
+    <div class="titles">
+      <span class="kicker" id="small-line">Badminton</span>
+      <h1 id="title"><span>Ladder</span><span class="last">League</span></h1>
+    </div>
+    <svg class="shuttle" viewBox="0 0 60 92" aria-hidden="true">
+      <path d="M5 3 L22 62 H38 L55 3 Z" fill="#F4F6FB"/>
+      <path d="M15 3 L26 62 M30 3 V62 M45 3 L34 62" stroke="#BFC7D8" stroke-width="2"/>
+      <path d="M11 24 H49 M17 44 H43" stroke="#BFC7D8" stroke-width="2"/>
+      <rect x="21" y="60" width="18" height="8" fill="var(--accent2)"/>
+      <path d="M21 68 H39 V74 A9 9 0 0 1 21 74 Z" fill="#FFFFFF"/>
+    </svg>
+  </header>
+  <p class="announce" id="announce" hidden></p>
   <p id="status" role="status">Loading…</p>
-  <table id="board" hidden>
-    <thead><tr><th class="rank">#</th><th>Name</th><th class="points">Points</th></tr></thead>
-    <tbody></tbody>
-  </table>
+  <div class="table" id="table" hidden>
+    <div class="head" aria-hidden="true"><span>Rank</span><span>Player</span><span>Points</span></div>
+    <ol id="board"></ol>
+  </div>
 </main>
+<button class="about" id="about" type="button" aria-label="About" aria-expanded="false" aria-controls="about-bubble">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 7h2v2h-2zM11 11h2v6h-2zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+</button>
+<div class="bubble" id="about-bubble" hidden>catcreature</div>
 <script>
-  const status = document.getElementById("status");
-  const board = document.getElementById("board");
+  const $ = id => document.getElementById(id);
+  const HEX = /^#[0-9a-f]{6}$/i, SHA = /^[0-9a-f]{1,40}$/i;
+  const THEMES = {
+    stadium: { bg: "#060B1F", panel: "#0B1640", accent: "#FF7A1A", accent2: "#2D63FF", floor: "#0E6E7A" },
+    court:   { bg: "#062A1E", panel: "#0B3D2C", accent: "#F2C94C", accent2: "#2FA36B", floor: "#1E6646" },
+    royal:   { bg: "#0D0726", panel: "#1A1045", accent: "#FFC83D", accent2: "#7C4DFF", floor: "#3B2A7A" },
+    ember:   { bg: "#120708", panel: "#22100F", accent: "#FF4D3D", accent2: "#FFB020", floor: "#5A1E14" },
+  };
+  const pick = (v, list, d) => list.includes(v) ? v : d;
+  const text = (v, max, d) => typeof v === "string" ? v.trim().slice(0, max) : d;
+
+  // site.json is written by the app, but it is checked here too: anything unknown falls back to the default.
+  function settingsFrom(raw) {
+    const o = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+    const s = {
+      smallLine: text(o.smallLine, 30, "Badminton"),
+      title: text(o.title, 40, "") || "Ladder League",
+      announcement: text(o.announcement, 120, ""),
+      theme: pick(o.theme, ["stadium", "court", "royal", "ember", "custom"], "stadium"),
+      main: HEX.test(o.main) ? o.main : "#0C1638",
+      accent: HEX.test(o.accent) ? o.accent : "#FF7A1A",
+      medalRows: Number.isInteger(o.medalRows) && o.medalRows >= 0 && o.medalRows <= 3 ? o.medalRows : 3,
+      background: pick(o.background, ["stadium", "court", "plain", "gradient", "photo"], "stadium"),
+      logo: typeof o.logo === "string" && SHA.test(o.logo) ? o.logo : "",
+      logoShape: pick(o.logoShape, ["circle", "shield", "rounded"], "circle"),
+      photo: typeof o.photo === "string" && SHA.test(o.photo) ? o.photo : "",
+    };
+    if (s.background === "photo" && !s.photo) s.background = "stadium";
+    return s;
+  }
+
+  function luminance(hex) {
+    const c = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(v => v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+
+  function applySettings(s) {
+    const t = s.theme === "custom"
+      ? { bg: s.main, panel: `color-mix(in srgb, ${s.main} 90%, ${luminance(s.main) > 0.45 ? "#000" : "#fff"})`,
+          accent: s.accent, accent2: s.accent, floor: `color-mix(in srgb, ${s.main} 75%, ${s.accent})` }
+      : THEMES[s.theme];
+    const root = document.documentElement.style;
+    for (const k of ["bg", "panel", "accent", "accent2", "floor"]) root.setProperty("--" + k, t[k]);
+    document.body.className = "bg-" + s.background + (s.theme === "custom" && luminance(s.main) > 0.45 ? " light" : "");
+
+    $("small-line").textContent = s.smallLine;
+    $("small-line").hidden = !s.smallLine;
+    const words = s.title.split(/\s+/), h1 = $("title");
+    h1.replaceChildren();
+    const first = document.createElement("span"), last = document.createElement("span");
+    last.className = "last";
+    if (words.length > 1) { first.textContent = words.slice(0, -1).join(" "); last.textContent = words[words.length - 1]; h1.append(first, last); }
+    else { first.textContent = s.title; h1.append(first); }
+    h1.classList.toggle("long", s.title.length > 18);
+    document.title = s.title;
+
+    $("announce").textContent = s.announcement;
+    $("announce").hidden = !s.announcement;
+    if (s.logo) {
+      $("logo").className = "logo " + s.logoShape;
+      $("logo-img").src = "logo.png?v=" + s.logo; // only the validated sha comes from site.json
+      $("logo").hidden = false;
+      $("logo").parentElement.classList.add("has-logo");
+    }
+    if (s.background === "photo") {
+      $("photo").style.backgroundImage = 'url("background.jpg?v=' + s.photo + '")';
+      $("photo").hidden = false;
+    }
+    return s;
+  }
+
+  function medal(rank) {
+    const svg = '<svg class="medal" viewBox="0 0 42 42" aria-hidden="true"><g fill="none" stroke="var(--m)" stroke-width="2.2" stroke-linecap="round">' +
+      '<path d="M9 33 C3 26 3 16 8 9"/><path d="M33 33 C39 26 39 16 34 9"/>' +
+      '<path d="M6 27 l-3 -2 M5 21 l-3 0 M6 15 l-3 1 M36 27 l3 -2 M37 21 l3 0 M36 15 l3 1"/></g>' +
+      '<circle cx="21" cy="21" r="12" fill="var(--m)" stroke="var(--m2)" stroke-width="2"/>' +
+      '<text x="21" y="26.5" text-anchor="middle" font-family="Barlow Condensed" font-style="italic" font-weight="900" font-size="16" fill="#0C1638">' +
+      rank + '</text></svg>'; // rank is a number we computed, never user text
+    return svg;
+  }
+
+  function renderBoard(rows, s) {
+    const status = $("status"), board = $("board");
+    if (!rows.length) { status.textContent = "No points yet"; return; }
+    rows.sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
+    status.textContent = rows.length + (rows.length === 1 ? " player" : " players");
+    let rank = 0;
+    rows.forEach((row, i) => {
+      if (i === 0 || row.points !== rows[i - 1].points) rank = i + 1; // ties share a rank: 1, 2, 2, 4
+      const medalled = rank <= s.medalRows, li = document.createElement("li"), r = document.createElement("span");
+      if (medalled) li.className = "m m" + rank;
+      r.className = "r";
+      r.setAttribute("aria-label", "Rank " + rank);
+      if (medalled) r.innerHTML = medal(rank); else r.textContent = rank;
+      for (const [cls, value] of [["n", row.name], ["p", row.points]]) {
+        const span = document.createElement("span");
+        span.className = cls;
+        span.textContent = value; // names come from a spreadsheet: never innerHTML
+        li.append(span);
+      }
+      li.prepend(r);
+      board.append(li);
+    });
+    $("table").hidden = false;
+  }
+
   // Pages caches files for up to 10 minutes; the query string and no-store skip that cache.
-  fetch("points.json?t=" + Date.now(), { cache: "no-store" })
-    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-    .then(rows => {
-      if (!rows.length) { status.textContent = "No points yet"; return; }
-      rows.sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
-      status.textContent = rows.length + (rows.length === 1 ? " player" : " players");
-      let rank = 0;
-      rows.forEach((row, i) => {
-        if (i === 0 || row.points !== rows[i - 1].points) rank = i + 1; // ties share a rank: 1, 2, 2, 4
-        const tr = document.createElement("tr");
-        if (rank <= 3) tr.className = "top";
-        for (const [cls, text] of [["rank", rank], ["name", row.name], ["points", row.points]]) {
-          const td = document.createElement("td");
-          td.className = cls;
-          td.textContent = text; // names come from a spreadsheet: never innerHTML
-          tr.append(td);
-        }
-        board.tBodies[0].append(tr);
-      });
-      board.hidden = false;
-    })
-    .catch(() => { status.textContent = "Couldn't load points"; });
+  const fresh = name => fetch(name + "?t=" + Date.now(), { cache: "no-store" }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+  const settings = fresh("site.json").catch(() => null).then(settingsFrom).then(applySettings);
+  Promise.all([settings, fresh("points.json")])
+    .then(([s, rows]) => renderBoard(rows, s))
+    .catch(() => { $("status").textContent = "Couldn't load points"; });
+
+  // ⓘ: a small bubble with the maker's name; Esc or a tap elsewhere closes it.
+  const about = $("about"), bubble = $("about-bubble");
+  const show = open => { bubble.hidden = !open; about.setAttribute("aria-expanded", String(open)); };
+  about.addEventListener("click", e => { e.stopPropagation(); show(bubble.hidden); });
+  document.addEventListener("click", () => show(false));
+  document.addEventListener("keydown", e => { if (e.key === "Escape") show(false); });
 </script>
 </body>
 </html>
