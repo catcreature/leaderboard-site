@@ -1,11 +1,11 @@
 [
     {
-        "name": "Isha",
-        "points": 32
+        "name": "Ravi",
+        "points": 40
     },
     {
-        "name": "Ravi",
-        "points": 32
+        "name": "Isha",
+        "points": 34
     },
     {
         "name": "Arjun",
@@ -13,30 +13,30 @@
     },
     {
         "name": "Priya",
-        "points": 24
+        "points": 30
     },
     {
         "name": "Sana",
         "points": 22
     },
     {
+        "name": "Rohan",
+        "points": 20
+    },
+    {
         "name": "Meera",
         "points": 18
+    },
+    {
+        "name": "Neha",
+        "points": 16
     },
     {
         "name": "Dev",
         "points": 14
     },
     {
-        "name": "Rohan",
-        "points": 10
-    },
-    {
         "name": "Kabir",
-        "points": 8
-    },
-    {
-        "name": "Neha",
         "points": 8
     }
 ]
