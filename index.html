@@ -44,6 +44,7 @@
   body.bg-plain main, body.bg-gradient main { padding-bottom: 48px; }
   .photo { position: fixed; inset: 0; z-index: 0; background-position: center; background-size: cover; }
   .photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,.42), rgba(0,0,0,.78)); }
+  body.light .photo::after { background: linear-gradient(rgba(255,255,255,.55), rgba(255,255,255,.82)); }
   body.bg-photo main { padding-bottom: 48px; }
 
   /* Header */
@@ -171,14 +172,18 @@
     return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
   }
 
+  // Dark text when it reads better than white on the main colour (luminance above ~0.19), not only on near-white.
+  const darkTextOn = hex => (luminance(hex) + 0.05) / (luminance("#0E1330") + 0.05) > 1.05 / (luminance(hex) + 0.05);
+
   function applySettings(s) {
+    const light = s.theme === "custom" && darkTextOn(s.main);
     const t = s.theme === "custom"
-      ? { bg: s.main, panel: `color-mix(in srgb, ${s.main} 90%, ${luminance(s.main) > 0.45 ? "#000" : "#fff"})`,
+      ? { bg: s.main, panel: `color-mix(in srgb, ${s.main} 90%, ${light ? "#000" : "#fff"})`,
           accent: s.accent, accent2: s.accent, floor: `color-mix(in srgb, ${s.main} 75%, ${s.accent})` }
       : THEMES[s.theme];
     const root = document.documentElement.style;
     for (const k of ["bg", "panel", "accent", "accent2", "floor"]) root.setProperty("--" + k, t[k]);
-    document.body.className = "bg-" + s.background + (s.theme === "custom" && luminance(s.main) > 0.45 ? " light" : "");
+    document.body.className = "bg-" + s.background + (light ? " light" : "");
 
     $("small-line").textContent = s.smallLine;
     $("small-line").hidden = !s.smallLine;
