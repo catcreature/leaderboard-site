@@ -1,1 +1,34 @@
-[]
+[
+    {
+        "name": "Arjun",
+        "points": 15
+    },
+    {
+        "name": "Isha",
+        "points": 15
+    },
+    {
+        "name": "Ravi",
+        "points": 12
+    },
+    {
+        "name": "Sana",
+        "points": 11
+    },
+    {
+        "name": "Meera",
+        "points": 9
+    },
+    {
+        "name": "Priya",
+        "points": 9
+    },
+    {
+        "name": "Dev",
+        "points": 7
+    },
+    {
+        "name": "Kabir",
+        "points": 4
+    }
+]
