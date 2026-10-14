@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaderboard</title>
+<style>
+  :root { --bg:#f5f4f0; --card:#ffffff; --text:#1c1d21; --muted:#6c6d75; --line:#e5e3dc; --gold:#b7791f; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#111216; --card:#1a1b20; --text:#f1f1f3; --muted:#9b9ca5; --line:#2a2b31; --gold:#f2b544; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 560px; margin: 0 auto; padding: 32px 16px 48px; }
+  h1 { margin: 0 0 4px; font-size: 28px; letter-spacing: -0.01em; }
+  #status { margin: 0 0 20px; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; background: var(--card);
+          border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  th, td { padding: 12px 16px; text-align: left; border-top: 1px solid var(--line); }
+  th { border-top: 0; font-size: 13px; font-weight: 600; color: var(--muted);
+       text-transform: uppercase; letter-spacing: 0.04em; }
+  td.rank, th.rank { width: 3.5em; color: var(--muted); font-variant-numeric: tabular-nums; }
+  td.points, th.points { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  td.name { overflow-wrap: anywhere; }
+  tr.top td.rank { color: var(--gold); font-weight: 700; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Leaderboard</h1>
+  <p id="status">Loading…</p>
+  <table id="board" hidden>
+    <thead><tr><th class="rank">#</th><th>Name</th><th class="points">Points</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</main>
+<script>
+  const status = document.getElementById("status");
+  const board = document.getElementById("board");
+  // Pages caches files for up to 10 minutes; the query string and no-store skip that cache.
+  fetch("points.json?t=" + Date.now(), { cache: "no-store" })
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(rows => {
+      if (!rows.length) { status.textContent = "No points yet"; return; }
+      rows.sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
+      status.textContent = rows.length + (rows.length === 1 ? " player" : " players");
+      let rank = 0;
+      rows.forEach((row, i) => {
+        if (i === 0 || row.points !== rows[i - 1].points) rank = i + 1; // ties share a rank: 1, 2, 2, 4
+        const tr = document.createElement("tr");
+        if (rank <= 3) tr.className = "top";
+        for (const [cls, text] of [["rank", rank], ["name", row.name], ["points", row.points]]) {
+          const td = document.createElement("td");
+          td.className = cls;
+          td.textContent = text; // names come from a spreadsheet: never innerHTML
+          tr.append(td);
+        }
+        board.tBodies[0].append(tr);
+      });
+      board.hidden = false;
+    })
+    .catch(() => { status.textContent = "Couldn't load points"; });
+</script>
+</body>
+</html>
